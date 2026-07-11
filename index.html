@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#EDEAE3">
+<title>Memento — Your Life in Weeks</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Spectral:wght@400;500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bone:#EDEAE3;
+  --paper:#F3F1EB;
+  --ink:#1A1817;
+  --graphite:#6E6A63;
+  --faint:#D8D3C8;
+  --crimson:#A31621;
+  --gold:#B08D2E;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{
+  background:var(--bone);color:var(--ink);
+  font-family:'Spectral',serif;font-size:16px;line-height:1.55;
+  display:flex;justify-content:center;
+}
+.app{width:100%;max-width:480px;min-height:100vh;padding:0 20px 40px}
+.screen{display:none}
+.screen.on{display:block}
+/* wordmark */
+.mark{
+  text-align:center;padding:26px 0 4px;
+  font-family:'Fraunces',serif;font-weight:700;font-size:15px;
+  letter-spacing:.42em;text-transform:uppercase;
+}
+.mark::after{content:"";display:block;width:34px;height:2px;background:var(--crimson);margin:10px auto 0}
+/* setup */
+.lede{
+  font-family:'Fraunces',serif;font-weight:600;font-size:30px;line-height:1.18;
+  text-align:center;margin:28px 0 8px;
+}
+.sub{text-align:center;color:var(--graphite);font-size:15px;margin-bottom:28px}
+label{display:block;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--graphite);margin:18px 0 6px}
+input,select{
+  width:100%;background:var(--paper);border:1px solid var(--faint);border-radius:10px;
+  padding:13px 14px;font-family:'Spectral',serif;font-size:16px;color:var(--ink);
+}
+input:focus,select:focus{outline:2px solid var(--ink);outline-offset:1px}
+.opt-row{display:flex;gap:10px}
+.opt-row > div{flex:1}
+.hint{font-size:12.5px;color:var(--graphite);margin-top:5px}
+.err{display:none;margin-top:16px;padding:11px 14px;border:1px solid var(--crimson);border-radius:10px;color:var(--crimson);font-size:14px;background:rgba(163,22,33,.06)}
+.primary{
+  width:100%;margin-top:28px;background:var(--ink);color:var(--bone);border:none;border-radius:12px;
+  padding:16px;font-family:'Fraunces',serif;font-weight:700;font-size:17px;letter-spacing:.04em;cursor:pointer;
+}
+.primary:active{transform:translateY(1px)}
+/* grid screen */
+.counts{display:flex;justify-content:space-between;margin:18px 0 4px}
+.count{text-align:center;flex:1}
+.count b{display:block;font-family:'Space Mono',monospace;font-weight:700;font-size:22px}
+.count.red b{color:var(--crimson)}
+.count span{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--graphite)}
+.gridwrap{margin:14px 0 6px;border:1px solid var(--faint);border-radius:12px;background:var(--paper);padding:12px}
+canvas.lifegrid{display:block;width:100%}
+.legend{display:flex;justify-content:center;gap:18px;margin:10px 0 2px;font-family:'Space Mono',monospace;font-size:10.5px;color:var(--graphite);letter-spacing:.06em}
+.legend i{display:inline-block;width:8px;height:8px;margin-right:6px;vertical-align:baseline}
+.legend .l1 i{background:var(--ink)}
+.legend .l2 i{background:var(--crimson)}
+.legend .l3 i{border:1px solid var(--faint)}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.card{background:var(--paper);border:1px solid var(--faint);border-radius:12px;padding:14px 14px 12px}
+.card b{display:block;font-family:'Space Mono',monospace;font-weight:700;font-size:24px;color:var(--crimson)}
+.card span{font-size:13px;color:var(--graphite)}
+.defend{
+  width:100%;margin-top:18px;background:var(--crimson);color:var(--bone);border:none;border-radius:12px;
+  padding:17px;font-family:'Fraunces',serif;font-weight:700;font-size:18px;cursor:pointer;letter-spacing:.03em;
+}
+.ghostbtn{
+  width:100%;margin-top:10px;background:none;border:1px solid var(--ink);color:var(--ink);border-radius:12px;
+  padding:13px;font-family:'Fraunces',serif;font-weight:600;font-size:15px;cursor:pointer;
+}
+.tiny{margin-top:14px;text-align:center;font-size:12.5px;color:var(--graphite)}
+.tiny a{color:var(--graphite)}
+/* focus screen */
+.focuswrap{text-align:center;padding-top:8vh}
+.fquote{font-family:'Fraunces',serif;font-weight:600;font-size:19px;line-height:1.4;max-width:320px;margin:0 auto 6px}
+.fattr{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--graphite);margin-bottom:8vh}
+.clock{font-family:'Space Mono',monospace;font-weight:700;font-size:72px;letter-spacing:.02em}
+.fnote{color:var(--graphite);font-size:14px;margin:10px 0 8vh}
+.durrow{display:flex;gap:10px;justify-content:center;margin-bottom:26px}
+.dur{
+  background:var(--paper);border:1px solid var(--faint);border-radius:999px;padding:9px 20px;
+  font-family:'Space Mono',monospace;font-size:14px;color:var(--ink);cursor:pointer;
+}
+.dur.sel{background:var(--ink);color:var(--bone);border-color:var(--ink)}
+/* done screen */
+.donewrap{text-align:center;padding-top:12vh}
+.bigred{font-family:'Fraunces',serif;font-weight:700;font-size:42px;color:var(--crimson);line-height:1.1}
+.donewrap p{color:var(--graphite);margin:14px 0 30px}
+@media (prefers-reduced-motion: reduce){ * {animation:none !important;transition:none !important} }
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- SETUP -->
+<section class="screen on" id="setup">
+  <div class="mark">Memento</div>
+  <div class="lede">Your whole life,<br>on one page.</div>
+  <div class="sub">One square is one week. See how many are already spent — and how many remain.</div>
+
+  <label for="dob">Your date of birth</label>
+  <input type="date" id="dob">
+
+  <label for="horizon">Count my weeks up to age</label>
+  <select id="horizon">
+    <option value="70">70</option>
+    <option value="75">75</option>
+    <option value="80" selected>80</option>
+    <option value="85">85</option>
+    <option value="90">90</option>
+  </select>
+
+  <label>Optional — the hardest number</label>
+  <div class="opt-row">
+    <div>
+      <input type="number" id="pAge" min="30" max="100" inputmode="numeric" placeholder="A parent's age">
+    </div>
+    <div>
+      <input type="number" id="pVisits" min="1" max="365" inputmode="numeric" placeholder="Visits per year">
+    </div>
+  </div>
+  <div class="hint">We'll estimate how many times you may still see them.</div>
+
+  <div class="err" id="setupErr" role="alert"></div>
+  <button class="primary" onclick="build()">Show me my weeks</button>
+  <div class="tiny">Nothing you enter leaves your phone.</div>
+</section>
+
+<!-- GRID -->
+<section class="screen" id="life">
+  <div class="mark">Memento</div>
+  <div class="counts">
+    <div class="count"><b id="cLived">0</b><span>weeks lived</span></div>
+    <div class="count red"><b id="cLeft">0</b><span>weeks left</span></div>
+    <div class="count"><b id="cPct">0%</b><span>complete</span></div>
+  </div>
+  <div class="gridwrap"><canvas class="lifegrid" id="grid"></canvas></div>
+  <div class="legend">
+    <span class="l1"><i></i>SPENT</span>
+    <span class="l2"><i></i>THIS WEEK</span>
+    <span class="l3"><i></i>REMAINING</span>
+  </div>
+  <div class="cards" id="cards"></div>
+  <button class="defend" onclick="show('focus')">Defend today — focus now</button>
+  <button class="ghostbtn" onclick="shareCard()">Share my number</button>
+  <div class="tiny" id="streakLine">Days defended: 0 &nbsp;·&nbsp; Streak: 0</div>
+  <div class="tiny"><a href="#" onclick="show('setup');return false">Edit details</a></div>
+</section>
+
+<!-- FOCUS -->
+<section class="screen" id="focus">
+  <div class="focuswrap">
+    <div class="mark">Memento</div>
+    <div style="height:5vh"></div>
+    <div class="fquote" id="fq"></div>
+    <div class="fattr" id="fa"></div>
+    <div class="clock" id="clock">25:00</div>
+    <div class="fnote" id="fnote">This time is already spent. Spend it on purpose.</div>
+    <div class="durrow" id="durrow">
+      <button class="dur" data-m="10" onclick="setDur(this)">10 min</button>
+      <button class="dur sel" data-m="25" onclick="setDur(this)">25 min</button>
+      <button class="dur" data-m="50" onclick="setDur(this)">50 min</button>
+    </div>
+    <button class="primary" id="startBtn" onclick="startFocus()">Begin</button>
+    <button class="ghostbtn" id="quitBtn" onclick="quitFocus()">Back</button>
+  </div>
+</section>
+
+<!-- DONE -->
+<section class="screen" id="done">
+  <div class="donewrap">
+    <div class="mark">Memento</div>
+    <div style="height:6vh"></div>
+    <div class="bigred" id="doneTitle">Today, defended.</div>
+    <p id="doneSub">One week square, earned back from the scroll.</p>
+    <button class="primary" onclick="refreshLife();show('life')">Return to my weeks</button>
+  </div>
+</section>
+
+</div>
+<script>
+'use strict';
+/* ============================================================
+   PERSISTENCE — enabled for deployment.
+   Wrapped in try/catch so the app still runs in sandboxed
+   previews where storage is blocked (data just won't persist).
+   ============================================================ */
+var state = {
+  dob:null, horizon:80, pAge:null, pVisits:null,
+  daysDefended:0, streak:0, lastDefend:null
+};
+function save(){
+  try{ localStorage.setItem('memento', JSON.stringify(state)); }catch(e){}
+}
+function load(){
+  try{
+    var s = localStorage.getItem('memento');
+    if(s){
+      var d = JSON.parse(s);
+      for(var k in state) if(d[k] !== undefined) state[k] = d[k];
+    }
+  }catch(e){}
+}
+
+var QUOTES = [
+  ['It is not that we have a short time to live, but that we waste much of it.','Seneca'],
+  ['You could leave life right now. Let that determine what you do, and say, and think.','Marcus Aurelius'],
+  ['While we are postponing, life speeds by.','Seneca'],
+  ['No man ever steps in the same river twice.','Heraclitus'],
+  ['Think of yourself as dead. You have lived your life. Now take what is left and live it properly.','Marcus Aurelius'],
+  ['Begin at once to live, and count each separate day as a separate life.','Seneca']
+];
+
+var WEEK_MS = 7*24*3600*1000;
+function calc(){
+  var now = new Date();
+  var lived = Math.floor((now - state.dob)/WEEK_MS);
+  var total = Math.round(state.horizon * 52.18);
+  if(lived < 0) lived = 0;
+  var left = total - lived; if(left < 0) left = 0;
+  return {lived:lived, total:total, left:left,
+          yearsLeft: Math.max(0, Math.round(left/52.18)),
+          pct: Math.min(100, Math.round(lived/total*100))};
+}
+function fmt(n){ return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g,','); }
+
+function setupError(msg){
+  var e = document.getElementById('setupErr');
+  e.textContent = msg;
+  e.style.display = 'block';
+}
+function build(){
+  document.getElementById('setupErr').style.display = 'none';
+  var d = document.getElementById('dob').value;
+  if(!d){ setupError('Enter your date of birth first.'); return; }
+  var dob = new Date(d + 'T00:00:00');
+  if(isNaN(dob.getTime()) || dob > new Date()){ setupError('That date is in the future \u2014 enter your real one.'); return; }
+  state.dob = dob;
+  state.horizon = +document.getElementById('horizon').value;
+  var pa = +document.getElementById('pAge').value;
+  var pv = +document.getElementById('pVisits').value;
+  state.pAge = (pa>=30 && pa<=100) ? pa : null;
+  state.pVisits = (pv>=1 && pv<=365) ? pv : null;
+  save();
+  refreshLife();
+  show('life');
+}
+
+function refreshLife(){
+  var c = calc();
+  document.getElementById('cLived').textContent = fmt(c.lived);
+  document.getElementById('cLeft').textContent = fmt(c.left);
+  document.getElementById('cPct').textContent = c.pct + '%';
+  drawGrid(c);
+  var cards = '';
+  cards += cardHTML(fmt(c.left), 'Sundays left');
+  cards += cardHTML(fmt(c.yearsLeft), 'Summers left');
+  cards += cardHTML(fmt(Math.round(c.yearsLeft*12.37)), 'Full moons left');
+  if(state.pAge && state.pVisits){
+    var pv = Math.max(0, (85 - state.pAge)) * state.pVisits;
+    cards += cardHTML(fmt(Math.round(pv)), 'Times you may still see them');
+  } else {
+    cards += cardHTML(fmt(c.yearsLeft*52), 'Saturdays left');
+  }
+  document.getElementById('cards').innerHTML = cards;
+  document.getElementById('streakLine').innerHTML =
+    'Days defended: ' + state.daysDefended + ' &nbsp;·&nbsp; Streak: ' + state.streak;
+}
+function cardHTML(n,l){ return '<div class="card"><b>'+n+'</b><span>'+l+'</span></div>'; }
+
+/* ---------- the grid ---------- */
+var pulse = {t:0, raf:null};
+function drawGrid(c){
+  var cv = document.getElementById('grid');
+  var wrap = cv.parentElement;
+  var cssW = wrap.clientWidth - 24;
+  var cols = 52;
+  var cell = cssW / cols;
+  var rows = Math.ceil(c.total / cols);
+  var cssH = rows * cell;
+  var dpr = window.devicePixelRatio || 1;
+  cv.width = Math.round(cssW * dpr);
+  cv.height = Math.round(cssH * dpr);
+  cv.style.height = cssH + 'px';
+  var ctx = cv.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(pulse.raf) cancelAnimationFrame(pulse.raf);
+
+  function paint(alpha){
+    ctx.clearRect(0,0,cssW,cssH);
+    var pad = cell*0.18, s = cell - pad*2;
+    for(var i=0;i<c.total;i++){
+      var x = (i%cols)*cell + pad;
+      var y = Math.floor(i/cols)*cell + pad;
+      if(i < c.lived){
+        ctx.fillStyle = '#1A1817';
+        ctx.fillRect(x,y,s,s);
+      } else if(i === c.lived){
+        ctx.fillStyle = 'rgba(163,22,33,' + alpha + ')';
+        ctx.fillRect(x-pad*0.5, y-pad*0.5, s+pad, s+pad);
+      } else {
+        ctx.strokeStyle = '#D8D3C8';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x+0.5,y+0.5,s-1,s-1);
+      }
+    }
+  }
+  if(reduced){ paint(1); return; }
+  (function loop(ts){
+    var a = 0.55 + 0.45*Math.sin(ts/450);
+    paint(a);
+    pulse.raf = requestAnimationFrame(loop);
+  })(0);
+}
+
+/* ---------- focus ---------- */
+var timer = {mins:25, end:0, iv:null, running:false};
+function setDur(btn){
+  if(timer.running) return;
+  var ds = document.querySelectorAll('.dur');
+  for(var i=0;i<ds.length;i++) ds[i].classList.remove('sel');
+  btn.classList.add('sel');
+  timer.mins = +btn.getAttribute('data-m');
+  document.getElementById('clock').textContent = pad(timer.mins) + ':00';
+}
+function pad(n){ return (n<10?'0':'')+n; }
+function startFocus(){
+  var q = QUOTES[Math.floor(Math.random()*QUOTES.length)];
+  document.getElementById('fq').textContent = '\u201C' + q[0] + '\u201D';
+  document.getElementById('fa').textContent = '\u2014 ' + q[1];
+  timer.end = Date.now() + timer.mins*60000;
+  timer.running = true;
+  document.getElementById('startBtn').style.display = 'none';
+  document.getElementById('durrow').style.display = 'none';
+  document.getElementById('quitBtn').textContent = 'Surrender this session';
+  tick();
+  timer.iv = setInterval(tick, 250);
+}
+function tick(){
+  var ms = timer.end - Date.now();
+  if(ms <= 0){ finishFocus(); return; }
+  var m = Math.floor(ms/60000), s = Math.floor((ms%60000)/1000);
+  document.getElementById('clock').textContent = pad(m)+':'+pad(s);
+}
+var quitArm = null;
+function quitFocus(){
+  var qb = document.getElementById('quitBtn');
+  if(timer.running){
+    if(!quitArm){
+      qb.textContent = 'These minutes don\u2019t come back \u2014 tap again to give up';
+      quitArm = setTimeout(function(){
+        quitArm = null;
+        if(timer.running) qb.textContent = 'Surrender this session';
+      }, 3500);
+      return;
+    }
+    clearTimeout(quitArm); quitArm = null;
+    stopTimer();
+  }
+  resetFocusUI();
+  show('life');
+}
+function stopTimer(){
+  timer.running = false;
+  if(timer.iv){ clearInterval(timer.iv); timer.iv = null; }
+}
+function resetFocusUI(){
+  stopTimer();
+  if(quitArm){ clearTimeout(quitArm); quitArm = null; }
+  document.getElementById('startBtn').style.display = 'block';
+  document.getElementById('durrow').style.display = 'flex';
+  document.getElementById('quitBtn').textContent = 'Back';
+  document.getElementById('clock').textContent = pad(timer.mins)+':00';
+  document.getElementById('fq').textContent = '';
+  document.getElementById('fa').textContent = '';
+}
+function finishFocus(){
+  stopTimer();
+  var today = new Date().toDateString();
+  if(state.lastDefend !== today){
+    var y = new Date(Date.now() - 86400000).toDateString();
+    state.streak = (state.lastDefend === y) ? state.streak + 1 : 1;
+    state.lastDefend = today;
+    state.daysDefended++;
+    save();
+  }
+  resetFocusUI();
+  document.getElementById('doneSub').textContent =
+    timer.mins + ' focused minutes. Streak: ' + state.streak + ' day' + (state.streak===1?'':'s') + '.';
+  show('done');
+}
+
+/* ---------- share card ---------- */
+function shareCard(){
+  var c = calc();
+  var W = 1080, H = 1350;
+  var cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  var ctx = cv.getContext('2d');
+  ctx.fillStyle = '#EDEAE3'; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle = '#1A1817';
+  ctx.font = '700 40px "Space Mono", monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('M E M E N T O', W/2, 110);
+  ctx.fillStyle = '#A31621'; ctx.fillRect(W/2-45, 135, 90, 6);
+
+  var cols = 52, rows = Math.ceil(c.total/cols);
+  var gw = 900, cell = gw/cols, gx = (W-gw)/2, gy = 210;
+  var pad = cell*0.2, s = cell-pad*2;
+  for(var i=0;i<c.total;i++){
+    var x = gx + (i%cols)*cell + pad;
+    var y = gy + Math.floor(i/cols)*cell + pad;
+    if(i < c.lived){ ctx.fillStyle = '#1A1817'; ctx.fillRect(x,y,s,s); }
+    else if(i === c.lived){ ctx.fillStyle = '#A31621'; ctx.fillRect(x-pad*0.5,y-pad*0.5,s+pad,s+pad); }
+    else { ctx.strokeStyle = '#C9C3B6'; ctx.lineWidth = 1.5; ctx.strokeRect(x,y,s,s); }
+  }
+  var ty = gy + rows*cell + 110;
+  ctx.fillStyle = '#1A1817';
+  ctx.font = '600 58px "Fraunces", serif';
+  ctx.fillText('I have', W/2, ty);
+  ctx.fillStyle = '#A31621';
+  ctx.font = '700 110px "Space Mono", monospace';
+  ctx.fillText(fmt(c.left), W/2, ty+120);
+  ctx.fillStyle = '#1A1817';
+  ctx.font = '600 58px "Fraunces", serif';
+  ctx.fillText('weeks left.', W/2, ty+200);
+  ctx.fillStyle = '#6E6A63';
+  ctx.font = '400 34px "Spectral", serif';
+  ctx.fillText('How many do you have?', W/2, ty+265);
+  cv.toBlob(function(blob){
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'memento-weeks.png';
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  }, 'image/png');
+}
+
+/* ---------- nav ---------- */
+function show(id){
+  var sc = document.querySelectorAll('.screen');
+  for(var i=0;i<sc.length;i++) sc[i].classList.remove('on');
+  document.getElementById(id).classList.add('on');
+  window.scrollTo(0,0);
+}
+load();
+if(state.dob){ state.dob = new Date(state.dob); refreshLife(); show('life'); }
+window.addEventListener('resize', function(){ if(state.dob) refreshLife(); });
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('./sw.js').catch(function(){});
+  });
+}
+</script>
+</body>
+</html>

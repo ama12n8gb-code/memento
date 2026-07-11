@@ -1,0 +1,16 @@
+{
+  "name": "Memento — Your Life in Weeks",
+  "short_name": "Memento",
+  "description": "See your whole life as a grid of weeks, feel how many remain, and defend today with a focus session.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#EDEAE3",
+  "theme_color": "#EDEAE3",
+  "icons": [
+    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "./icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
